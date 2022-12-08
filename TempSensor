@@ -1,0 +1,107 @@
+#include "DHTesp.h"
+#include <WiFi.h>
+#include "PubSubClient.h"
+#include <string>
+
+const char* ssid = "Wokwi-GUEST";
+const char* password = "";
+const char* mqttServer = "broker.mqttdashboard.com";
+const char* mqttTopic = "KYH_IoT21_Laboration2"; // TODO: Change
+int port = 1883;
+String stMac;
+char mac[50];
+char clientId[50];
+
+
+WiFiClient espClient;
+PubSubClient client(espClient);
+
+const int ledPin = 15;
+
+
+DHTesp dhtSensor;
+void setup() {
+  /* Assignment code, no need to change */
+  Serial.begin(115200);
+  randomSeed(analogRead(0));
+
+  delay(10);
+  Serial.println();
+  Serial.print("Connecting to ");
+  Serial.println(ssid);
+
+  wifiConnect();
+
+  Serial.println("");
+  Serial.println("WiFi connected");
+  Serial.println("IP address: ");
+  Serial.println(WiFi.localIP());
+  Serial.println(WiFi.macAddress());
+  stMac = WiFi.macAddress();
+  stMac.replace(":", "_");
+  Serial.println(stMac);
+  
+  client.setServer(mqttServer, port);
+  client.setCallback(callback);
+  pinMode(ledPin, OUTPUT);
+
+  Serial.begin(115200);
+  dhtSensor.setup(ledPin, DHTesp::DHT22);
+}
+
+void wifiConnect() {
+  /* Assignment code, no need to change */
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(ssid, password);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+}
+
+void mqttReconnect() {
+  /* Assignment code, no need to change */
+  while (!client.connected()) {
+    Serial.print("Attempting MQTT connection...");
+    long r = random(1000);
+    sprintf(clientId, "clientId-%ld", r);
+    if (client.connect(clientId)) {
+      Serial.print(clientId);
+      Serial.println(" connected");
+      client.subscribe(mqttTopic);
+    } else {
+      Serial.print("failed, rc=");
+      Serial.print(client.state());
+      Serial.println(" try again in 5 seconds");
+      delay(5000);
+    }
+  }
+}
+
+ 
+void callback(char* topic, byte* message, unsigned int length) {
+  Serial.print("Message arrived on topic: ");
+  Serial.print(topic);
+  Serial.print(". Message: ");
+  String stMessage;
+  
+  for (int i = 0; i < length; i++) {
+    Serial.print((char)message[i]);
+    stMessage += (char)message[i];
+  }
+  Serial.println();
+}
+
+void loop() {
+ TempAndHumidity  data = dhtSensor.getTempAndHumidity();
+  Serial.println("Temp: " + String(data.temperature, 2) + "°C");
+  Serial.println("Humidity: " + String(data.humidity, 1) + "%");
+  Serial.println("---");
+  delay(1000);
+  /* Assignment code, no need to change */
+  delay(10);
+  if (!client.connected()) {
+    mqttReconnect();
+  }
+  client.loop();
+}
