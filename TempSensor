@@ -92,6 +92,8 @@ void callback(char* topic, byte* message, unsigned int length) {
   Serial.println();
 }
 
+
+
 void loop() {
  TempAndHumidity  data = dhtSensor.getTempAndHumidity();
   Serial.println("Temp: " + String(data.temperature, 2) + "°C");
@@ -102,6 +104,21 @@ void loop() {
   delay(10);
   if (!client.connected()) {
     mqttReconnect();
+
+     client.loop();
+   if (Serial.available() > 0) {
+     char mun[501];
+     memset(mun,0, 501);
+     Serial.readBytesUntil( '\n',mun,500);
+     publishSerialData(mun);
+   }
   }
   client.loop();
+}
+
+void publishSerialData(char *serialData){
+  if (!client.connected()) {
+    mqttReconnect();
+  }
+  client.publish(mqttTopic, serialData);
 }
