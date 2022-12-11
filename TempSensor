@@ -6,7 +6,7 @@
 const char* ssid = "Wokwi-GUEST";
 const char* password = "";
 const char* mqttServer = "broker.mqttdashboard.com";
-const char* mqttTopic = "KYH_IoT21_Laboration2"; // TODO: Change
+const char* mqttTopic = "KYH_IoT21_Laboration2"; 
 int port = 1883;
 String stMac;
 char mac[50];
@@ -92,33 +92,30 @@ void callback(char* topic, byte* message, unsigned int length) {
   Serial.println();
 }
 
-
-
 void loop() {
- TempAndHumidity  data = dhtSensor.getTempAndHumidity();
-  Serial.println("Temp: " + String(data.temperature, 2) + "°C");
-  Serial.println("Humidity: " + String(data.humidity, 1) + "%");
-  Serial.println("---");
-  delay(1000);
-  /* Assignment code, no need to change */
-  delay(10);
-  if (!client.connected()) {
+ if (!client.connected()) {
     mqttReconnect();
+  client.loop();
+  //TempAndHumidity data = dhtSensor.getTempAndHumidity();
 
-     client.loop();
-   if (Serial.available() > 0) {
-     char mun[501];
-     memset(mun,0, 501);
-     Serial.readBytesUntil( '\n',mun,500);
-     publishSerialData(mun);
-   }
+    float temp = dhtSensor.getTemperature();
+    float hum =  dhtSensor.getHumidity();
+    
+    char tempString[8];
+     dtostrf(temp, 1, 2, tempString);
+    char humString[8];
+     dtostrf(hum, 1, 2, humString);
+
+  //  sprintf(data, "%f", temp);
+    Serial.println("Temp: " + String(temp, 2) + "°C");
+    client.publish("KYH_IoT21_Laboration2", tempString);
+    
+    //sprintf(data, "%f", hum);
+   Serial.println("Humidity: " + String(hum, 1) + "%");
+    client.publish("KYH_IoT21_Laboration2", humString);
+
+  delay(1000);
+   
   }
   client.loop();
-}
-
-void publishSerialData(char *serialData){
-  if (!client.connected()) {
-    mqttReconnect();
-  }
-  client.publish(mqttTopic, serialData);
 }
