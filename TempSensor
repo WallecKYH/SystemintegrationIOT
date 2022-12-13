@@ -21,7 +21,7 @@ const int ledPin = 15;
 
 DHTesp dhtSensor;
 void setup() {
-  /* Assignment code, no need to change */
+ 
   Serial.begin(115200);
   randomSeed(analogRead(0));
 
@@ -50,7 +50,7 @@ void setup() {
 }
 
 void wifiConnect() {
-  /* Assignment code, no need to change */
+ 
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -60,7 +60,7 @@ void wifiConnect() {
 }
 
 void mqttReconnect() {
-  /* Assignment code, no need to change */
+  
   while (!client.connected()) {
     Serial.print("Attempting MQTT connection...");
     long r = random(1000);
@@ -80,9 +80,9 @@ void mqttReconnect() {
 
  
 void callback(char* topic, byte* message, unsigned int length) {
-  Serial.print("Message arrived on topic: ");
-  Serial.print(topic);
-  Serial.print(". Message: ");
+  Serial.print("Message arrived on TempSensor: ");
+  //Serial.print(topic);
+  //Serial.print(". Message: ");
   String stMessage;
   
   for (int i = 0; i < length; i++) {
@@ -96,23 +96,19 @@ void loop() {
  if (!client.connected()) {
     mqttReconnect();
   client.loop();
-  //TempAndHumidity data = dhtSensor.getTempAndHumidity();
+  
 
     float temp = dhtSensor.getTemperature();
-    float hum =  dhtSensor.getHumidity();
+ 
     
     char tempString[8];
      dtostrf(temp, 1, 2, tempString);
-    char humString[8];
-     dtostrf(hum, 1, 2, humString);
+   
 
-  //  sprintf(data, "%f", temp);
+ 
     Serial.println("Temp: " + String(temp, 2) + "°C");
     client.publish("KYH_IoT21_Laboration2", tempString);
-    
-    //sprintf(data, "%f", hum);
-   Serial.println("Humidity: " + String(hum, 1) + "%");
-    client.publish("KYH_IoT21_Laboration2", humString);
+  
 
   delay(1000);
    
