@@ -1,0 +1,14 @@
+from flask import Flask
+import requests
+
+
+app = Flask(__name__)
+
+def get_info():
+    url = requests.get('http://localhost:9080/get?format=json&pagination=false')
+    data = url.json()
+    print(data)
+
+if __name__ == '__main__':
+    get_info()
+    app.run( port=5000)
