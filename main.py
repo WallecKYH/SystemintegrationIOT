@@ -29,16 +29,15 @@ def handle_connect(client, userdata, flags, rc):
 # On-message-funktion
 @mqtt_client.on_message()
 def handle_mqtt_message(client, userdata, message):
-    m_topic = message.topic
     m_payload = message.payload.decode('utf-8')
-    print(f'Received message on topic: {m_topic}: {m_payload}')
+    print(f'Temp in Celsius: {m_payload}')
 
     # Spara m_payload till en textfil
     # w = Skriv över hela innehållet varje gång filen öppnas
     # r = Får bara läsa från filer
     # a = Append, lägg till ny text på slutet av filen
-    with open(file='storage.txt', mode='w', encoding='utf-8') as file:
-        file.write(m_payload)
+    with open(file='storage.txt', mode='a', encoding='utf-8') as file:
+        file.write(" Temp: " + m_payload + "ºC \n")
 
 
 # Gör en route som skriver ut ett sparat meddelande
@@ -49,19 +48,14 @@ def get_message():
     return jsonify({'text': data}), 200
 
 
-""" Exempel på en annan route:
-@app.route('/temperature/<room>')
-def get_temperature(room):
-    pass
-"""
+
 
 
 @app.route('/')
-def hello_world():
-    return "hello World"
+def temp_sensor():
+    show_temp = open("client.html", "r", encoding='utf-8')
+    return show_temp
 
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
